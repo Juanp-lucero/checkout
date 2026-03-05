@@ -1,35 +1,45 @@
+
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'models/payment_info.dart';
+import 'providers/cart_provider.dart';
+import 'screens/product_list_screen.dart';
+import 'screens/checkout_screen.dart';
+import 'screens/confirmation_screen.dart';
+import 'screens/payment_history_screen.dart';
 
-import 'screens/payment_form.dart';
-
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(const CheckoutApp());
+  await Hive.initFlutter();
+  Hive.registerAdapter(PaymentInfoAdapter());
+  await Hive.openBox<PaymentInfo>('payments');
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => CartProvider()),
+      ],
+      child: MyApp(),
+    ),
+  );
 }
 
-class CheckoutApp extends StatelessWidget {
-  const CheckoutApp({super.key});
-
+class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final theme = ThemeData(
-      colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF3E5BFF)),
-      useMaterial3: true,
-      inputDecorationTheme: const InputDecorationTheme(
-        border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
-      ),
-      textTheme: const TextTheme(
-        titleLarge: TextStyle(fontWeight: FontWeight.w700),
-        displayLarge: TextStyle(fontWeight: FontWeight.w800),
-      ),
-    );
-    Intl.defaultLocale = 'en_US';
     return MaterialApp(
-      title: 'Bank Checkout',
-      theme: theme,
-      home: const PaymentFormScreen(totalAmount: 2280.0),
-      debugShowCheckedModeBanner: false,
+      title: 'Taller Checkout',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+        visualDensity: VisualDensity.adaptivePlatformDensity,
+      ),
+      initialRoute: '/',
+      routes: {
+        '/': (_) => ProductListScreen(),
+        '/checkout': (_) => CheckoutScreen(),
+        '/confirmation': (_) => ConfirmationScreen(),
+        '/history': (_) => PaymentHistoryScreen(),
+      },
     );
   }
 }
